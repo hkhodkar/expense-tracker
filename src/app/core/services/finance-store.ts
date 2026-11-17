@@ -1,11 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { DEFAULT_CATEGORIES, createSeedTransactions } from '../data/seed-data';
 import { Category, NewCategory, NewTransaction, Transaction } from '../models/finance.models';
+import { CsvTransactionRow } from '../utils/csv.utils';
 import { calculateTotals, sortByDateDesc } from '../utils/finance.utils';
 import { createId, roundMoney } from '../utils/format.utils';
 import { StorageService } from './storage.service';
 
 export const STORAGE_KEY = 'expense-tracker.data';
+
+const IMPORT_COLORS = ['#14b8a6', '#f43f5e', '#8b5cf6', '#0ea5e9', '#f59e0b', '#84cc16'];
 
 interface FinanceState {
   categories: Category[];
@@ -68,6 +71,36 @@ export class FinanceStore {
       this.update((state) => ({ ...state, transactions: [...state.transactions, ...fresh] }));
     }
     return { added: fresh.length, duplicates: items.length - fresh.length };
+  }
+
+  /** Imports parsed CSV rows, creating any categories that don't exist yet. */
+  importRows(rows: CsvTransactionRow[]): {
+    added: number;
+    duplicates: number;
+    newCategories: number;
+  } {
+    let newCategories = 0;
+    const items = rows.map((row) => {
+      let category = this.findCategoryByName(row.category, row.type);
+      if (!category) {
+        category = this.addCategory({
+          name: row.category,
+          type: row.type,
+          color: IMPORT_COLORS[newCategories % IMPORT_COLORS.length],
+          budget: null,
+        });
+        newCategories++;
+      }
+      return {
+        date: row.date,
+        type: row.type,
+        amount: row.amount,
+        categoryId: category.id,
+        description: row.description || category.name,
+      };
+    });
+
+    return { ...this.addTransactions(items), newCategories };
   }
 
   addCategory(input: NewCategory): Category {

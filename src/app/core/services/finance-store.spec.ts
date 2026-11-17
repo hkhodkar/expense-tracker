@@ -104,4 +104,25 @@ describe('FinanceStore', () => {
     localStorage.setItem(STORAGE_KEY, '{not json');
     expect(createStore().transactions().length).toBeGreaterThan(0);
   });
+
+  it('imports csv rows and creates missing categories', () => {
+    store.clearTransactions();
+    const result = store.importRows([
+      {
+        date: '2026-11-01',
+        type: 'expense',
+        category: 'groceries',
+        amount: 20,
+        description: 'Aldi',
+      },
+      { date: '2026-11-02', type: 'expense', category: 'Pets', amount: 35, description: '' },
+      { date: '2026-11-03', type: 'expense', category: 'Pets', amount: 12, description: 'Treats' },
+    ]);
+
+    expect(result).toEqual({ added: 3, duplicates: 0, newCategories: 1 });
+    const pets = store.findCategoryByName('pets', 'expense');
+    expect(pets).toBeDefined();
+    expect(store.transactions().filter((t) => t.categoryId === pets?.id).length).toBe(2);
+    expect(store.transactions().find((t) => t.date === '2026-11-01')?.categoryId).toBe('groceries');
+  });
 });

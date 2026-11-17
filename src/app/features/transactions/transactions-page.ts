@@ -17,6 +17,8 @@ import {
   TransactionFilters,
 } from '../../core/models/finance.models';
 import { FinanceStore } from '../../core/services/finance-store';
+import { parseTransactionsCsv, transactionsToCsv } from '../../core/utils/csv.utils';
+import { toIsoDate } from '../../core/utils/date.utils';
 import { calculateTotals, filterTransactions } from '../../core/utils/finance.utils';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { IconComponent } from '../../shared/ui/icon';
@@ -128,7 +130,58 @@ export class TransactionsPage {
     this.filterForm.reset();
   }
 
+  protected exportCsv(): void {
+    const transactions = this.filtered();
+    if (!transactions.length) {
+      this.toast.show('Nothing to export', 'info');
+      return;
+    }
+    const csv = transactionsToCsv(transactions, this.store.categoryMap());
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transactions-${toIsoDate(new Date())}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    this.toast.show(
+      `Exported ${plural(transactions.length, this.hasFilters() ? 'filtered transaction' : 'transaction')}`,
+    );
+  }
+
+  protected async importCsv(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // allow picking the same file again
+    if (!file) return;
+
+    const { rows, errors } = parseTransactionsCsv(await file.text());
+    if (!rows.length) {
+      this.toast.show(errors[0] ?? 'No transactions found in this file', 'error', 6000);
+      return;
+    }
+
+    const result = this.store.importRows(rows);
+    const details = [
+      result.duplicates && `${plural(result.duplicates, 'duplicate')} skipped`,
+      errors.length && `${plural(errors.length, 'invalid row')} ignored`,
+      result.newCategories && plural(result.newCategories, 'new category', 'new categories'),
+    ].filter(Boolean);
+    this.toast.show(
+      `Imported ${plural(result.added, 'transaction')}${details.length ? ` (${details.join(', ')})` : ''}`,
+      'success',
+      6000,
+    );
+    if (errors.length) {
+      console.warn('CSV import issues:', errors);
+    }
+  }
+
   protected goToPage(page: number): void {
     this.page.set(Math.min(Math.max(1, page), this.pageCount()));
   }
+}
+
+function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
 }

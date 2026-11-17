@@ -5,6 +5,13 @@
       <p class="subtitle">Every income and expense in one place.</p>
     </div>
     <div class="page-actions">
+      <input #fileInput type="file" accept=".csv,text/csv" hidden (change)="importCsv($event)" />
+      <button type="button" class="btn" (click)="fileInput.click()">
+        <app-icon name="upload" /> Import CSV
+      </button>
+      <button type="button" class="btn" (click)="exportCsv()">
+        <app-icon name="download" /> Export CSV
+      </button>
       <button type="button" class="btn btn-primary" (click)="openCreate()">
         <app-icon name="plus" /> Add transaction
       </button>
