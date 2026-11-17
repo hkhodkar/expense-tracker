@@ -1,0 +1,43 @@
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.hint {
+  font-size: 12px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch,
+.custom-color {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch.selected {
+  border-color: var(--surface);
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+.custom-color {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}

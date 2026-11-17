@@ -1,0 +1,124 @@
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.overview-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 48px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.overview-percent {
+  font-size: 13px;
+}
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.budget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &.is-over {
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  }
+}
+
+.budget-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  h3 {
+    font-size: 15px;
+  }
+}
+
+.category-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.card-actions {
+  display: flex;
+  margin: -6px -8px -6px auto;
+}
+
+.amounts {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.spent {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.remaining {
+  font-size: 13px;
+}
+
+.link-btn {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.income-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+.income-amount {
+  margin-left: auto;
+  font-weight: 600;
+}

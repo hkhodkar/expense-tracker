@@ -1,0 +1,174 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Budgets</h1>
+      <p class="subtitle">Set monthly limits per category and keep an eye on your spending.</p>
+    </div>
+    <div class="page-actions">
+      <app-month-picker [(month)]="month" />
+      <button type="button" class="btn btn-primary" (click)="openCreate('expense')">
+        <app-icon name="plus" /> New category
+      </button>
+    </div>
+  </header>
+
+  @if (overBudget().length) {
+    <div class="alert" role="alert">
+      <app-icon name="alert" />
+      <span>
+        <strong
+          >{{ overBudget().length }}
+          {{ overBudget().length === 1 ? 'category is' : 'categories are' }} over budget:</strong
+        >
+        {{ overBudgetNames() }}
+      </span>
+    </div>
+  }
+
+  <div class="card overview">
+    <div class="overview-stats">
+      <div>
+        <span class="stat-label">Total budget</span>
+        <span class="stat-value">{{ summary().totalBudget | currency }}</span>
+      </div>
+      <div>
+        <span class="stat-label">Spent</span>
+        <span class="stat-value">{{ summary().spent | currency }}</span>
+      </div>
+      <div>
+        <span class="stat-label">{{ summary().remaining >= 0 ? 'Left to spend' : 'Over by' }}</span>
+        <span class="stat-value" [class.text-expense]="summary().remaining < 0">
+          {{ (summary().remaining < 0 ? -summary().remaining : summary().remaining) | currency }}
+        </span>
+      </div>
+    </div>
+    <app-progress-bar
+      [percent]="summary().percent"
+      [status]="summary().percent > 100 ? 'over' : summary().percent >= 80 ? 'warning' : 'ok'"
+    />
+    <span class="text-muted overview-percent"
+      >{{ summary().percent | number: '1.0-0' }}% of your monthly budget used</span
+    >
+  </div>
+
+  <div class="budget-grid">
+    @for (item of progress(); track item.category.id) {
+      <article class="card budget-card" [class.is-over]="item.status === 'over'">
+        <header class="budget-header">
+          <span class="category-icon" [style.background]="item.category.color"></span>
+          <h3>{{ item.category.name }}</h3>
+          @switch (item.status) {
+            @case ('over') {
+              <span class="badge danger"><app-icon name="alert" [size]="12" /> Over budget</span>
+            }
+            @case ('warning') {
+              <span class="badge warning">Almost there</span>
+            }
+            @case ('ok') {
+              <span class="badge success">On track</span>
+            }
+          }
+          <div class="card-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              [attr.aria-label]="'Edit ' + item.category.name"
+              (click)="openEdit(item.category)"
+            >
+              <app-icon name="pencil" [size]="16" />
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              [attr.aria-label]="'Delete ' + item.category.name"
+              (click)="requestDelete(item.category)"
+            >
+              <app-icon name="trash" [size]="16" />
+            </button>
+          </div>
+        </header>
+
+        @if (item.budget !== null) {
+          <div class="amounts">
+            <span class="spent">{{ item.spent | currency }}</span>
+            <span class="text-muted"
+              >of {{ item.budget | currency: 'USD' : 'symbol' : '1.0-0' }}</span
+            >
+          </div>
+          <app-progress-bar [percent]="item.percent" [status]="item.status" />
+          <p class="remaining" [class.text-expense]="item.status === 'over'">
+            @if (item.remaining !== null && item.remaining >= 0) {
+              {{ item.remaining | currency }} left
+            } @else {
+              {{ -(item.remaining ?? 0) | currency }} over the limit
+            }
+            <span class="text-muted">· {{ item.percent | number: '1.0-0' }}%</span>
+          </p>
+        } @else {
+          <div class="amounts">
+            <span class="spent">{{ item.spent | currency }}</span>
+            <span class="text-muted">spent</span>
+          </div>
+          <button type="button" class="link-btn" (click)="openEdit(item.category)">
+            Set a monthly budget
+          </button>
+        }
+      </article>
+    }
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Income categories</h2>
+      <button type="button" class="btn" (click)="openCreate('income')">
+        <app-icon name="plus" /> Add
+      </button>
+    </div>
+    <ul class="income-list">
+      @for (item of incomeByCategory(); track item.category.id) {
+        <li>
+          <span class="category-chip">
+            <span class="dot" [style.background]="item.category.color"></span
+            >{{ item.category.name }}
+          </span>
+          <span class="text-income income-amount">+{{ item.amount | currency }}</span>
+          <button
+            type="button"
+            class="icon-btn"
+            [attr.aria-label]="'Edit ' + item.category.name"
+            (click)="openEdit(item.category)"
+          >
+            <app-icon name="pencil" [size]="16" />
+          </button>
+          <button
+            type="button"
+            class="icon-btn danger"
+            [attr.aria-label]="'Delete ' + item.category.name"
+            (click)="requestDelete(item.category)"
+          >
+            <app-icon name="trash" [size]="16" />
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+@if (formOpen()) {
+  <app-category-form
+    [category]="editing()"
+    [defaultType]="newType()"
+    (saved)="save($event)"
+    (closed)="closeForm()"
+  />
+}
+
+@if (deleting(); as category) {
+  <app-confirm-dialog
+    title="Delete category?"
+    [message]="'“' + category.name + '” will be removed. This cannot be undone.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleting.set(null)"
+  />
+}

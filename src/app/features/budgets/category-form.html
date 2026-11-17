@@ -1,0 +1,73 @@
+<app-modal
+  [title]="isEdit() ? 'Edit category' : 'New category'"
+  [width]="460"
+  (closed)="closed.emit()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="modal-body form-grid">
+      <div class="field full">
+        <label for="name">Name</label>
+        <input id="name" class="input" type="text" placeholder="e.g. Pets" formControlName="name" />
+        @if (form.controls.name.touched && form.controls.name.errors; as errors) {
+          <span class="field-error">
+            {{
+              errors['taken']
+                ? 'A category with this name already exists.'
+                : 'Enter a name (max 30 characters).'
+            }}
+          </span>
+        }
+      </div>
+
+      <div class="field full">
+        <span class="visually-hidden" id="category-type">Type</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="category-type">
+          <label><input type="radio" formControlName="type" value="expense" /> Expense</label>
+          <label><input type="radio" formControlName="type" value="income" /> Income</label>
+        </div>
+      </div>
+
+      <div class="field full">
+        <span class="label">Color</span>
+        <div class="swatches">
+          @for (c of colors; track c) {
+            <button
+              type="button"
+              class="swatch"
+              [style.background]="c"
+              [class.selected]="color() === c"
+              [attr.aria-label]="'Use color ' + c"
+              (click)="form.controls.color.setValue(c)"
+            ></button>
+          }
+          <label class="custom-color" title="Custom color">
+            <input type="color" formControlName="color" aria-label="Custom color" />
+          </label>
+        </div>
+      </div>
+
+      @if (type() === 'expense') {
+        <div class="field full">
+          <label for="budget">Monthly budget (USD)</label>
+          <input
+            id="budget"
+            class="input"
+            type="number"
+            min="0"
+            step="10"
+            placeholder="No limit"
+            formControlName="budget"
+          />
+          <span class="hint text-muted">Leave empty if you don't want to track a limit.</span>
+        </div>
+      }
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="btn btn-primary">
+        {{ isEdit() ? 'Save changes' : 'Create category' }}
+      </button>
+    </footer>
+  </form>
+</app-modal>
