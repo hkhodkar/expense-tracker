@@ -1,0 +1,33 @@
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-logo"><app-icon name="wallet" [size]="20" /></span>
+      <span class="brand-name">Expense Tracker</span>
+    </a>
+
+    <nav class="nav" aria-label="Main">
+      @for (item of navItems; track item.path) {
+        <a class="nav-link" [routerLink]="item.path" routerLinkActive="active">
+          <app-icon [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button
+        type="button"
+        class="nav-link"
+        (click)="theme.toggle()"
+        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <app-icon [name]="theme.isDark() ? 'sun' : 'moon'" />
+        <span class="footer-label">{{ theme.isDark() ? 'Light mode' : 'Dark mode' }}</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
