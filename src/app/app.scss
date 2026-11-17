@@ -112,8 +112,15 @@
   }
 
   .nav-link {
+    flex: 1;
+    justify-content: center;
+    gap: 8px;
     width: auto;
-    padding: 8px 12px;
+    padding: 8px 10px;
+  }
+
+  .sidebar-footer .nav-link {
+    flex: none;
   }
 
   .sidebar-footer {

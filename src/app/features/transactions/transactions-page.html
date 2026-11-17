@@ -68,9 +68,9 @@
         <table class="table">
           <thead>
             <tr>
-              <th>Date</th>
+              <th class="hide-sm">Date</th>
               <th>Description</th>
-              <th>Category</th>
+              <th class="hide-sm">Category</th>
               <th class="num">Amount</th>
               <th><span class="visually-hidden">Actions</span></th>
             </tr>
@@ -79,9 +79,14 @@
             @for (t of pageItems(); track t.id) {
               @let category = store.categoryMap().get(t.categoryId);
               <tr>
-                <td class="text-muted">{{ t.date | date: 'MMM d, y' }}</td>
-                <td class="description">{{ t.description }}</td>
-                <td>
+                <td class="text-muted hide-sm">{{ t.date | date: 'MMM d, y' }}</td>
+                <td class="description">
+                  {{ t.description }}
+                  <span class="mobile-category text-muted">
+                    {{ category?.name ?? 'Uncategorized' }} · {{ t.date | date: 'MMM d' }}
+                  </span>
+                </td>
+                <td class="hide-sm">
                   <span class="category-chip">
                     <span class="dot" [style.background]="category?.color ?? '#94a3b8'"></span>
                     {{ category?.name ?? 'Uncategorized' }}

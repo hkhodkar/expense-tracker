@@ -65,6 +65,12 @@
   font-weight: 500;
 }
 
+.mobile-category {
+  display: none;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .amount {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -91,6 +97,27 @@
 }
 
 @media (max-width: 640px) {
+  .hide-sm {
+    display: none;
+  }
+
+  .mobile-category {
+    display: block;
+  }
+
+  .description {
+    max-width: 180px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 12px;
+  }
+
+  .table-summary .net {
+    margin-left: 0;
+  }
+
   .filters .select,
   .date-field {
     flex: 1 1 140px;
