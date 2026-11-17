@@ -1,0 +1,172 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Your finances for {{ monthLabel() }} at a glance.</p>
+    </div>
+    <div class="page-actions">
+      <app-month-picker [(month)]="month" />
+    </div>
+  </header>
+
+  <div class="stats">
+    <article class="card stat">
+      <div class="stat-icon primary"><app-icon name="wallet" /></div>
+      <div>
+        <span class="stat-label">Total balance</span>
+        <span class="stat-value">{{ store.totals().balance | currency }}</span>
+        <span class="stat-meta">All time</span>
+      </div>
+    </article>
+
+    <article class="card stat">
+      <div class="stat-icon success"><app-icon name="trending-up" /></div>
+      <div>
+        <span class="stat-label">Income</span>
+        <span class="stat-value">{{ monthTotals().income | currency }}</span>
+        @if (incomeChange(); as change) {
+          <span class="stat-meta" [class.up]="change >= 0" [class.down]="change < 0">
+            {{ change >= 0 ? '+' : '' }}{{ change | number: '1.0-1' }}% vs last month
+          </span>
+        } @else {
+          <span class="stat-meta">This month</span>
+        }
+      </div>
+    </article>
+
+    <article class="card stat">
+      <div class="stat-icon danger"><app-icon name="trending-down" /></div>
+      <div>
+        <span class="stat-label">Expenses</span>
+        <span class="stat-value">{{ monthTotals().expenses | currency }}</span>
+        @if (expenseChange(); as change) {
+          <!-- spending less than last month is the good direction here -->
+          <span class="stat-meta" [class.up]="change <= 0" [class.down]="change > 0">
+            {{ change >= 0 ? '+' : '' }}{{ change | number: '1.0-1' }}% vs last month
+          </span>
+        } @else {
+          <span class="stat-meta">This month</span>
+        }
+      </div>
+    </article>
+
+    <article class="card stat">
+      <div class="stat-icon warning"><app-icon name="percent" /></div>
+      <div>
+        <span class="stat-label">Savings rate</span>
+        <span class="stat-value">{{ savingsRate() | number: '1.0-1' }}%</span>
+        <span class="stat-meta">Net {{ monthTotals().balance | currency }}</span>
+      </div>
+    </article>
+  </div>
+
+  <div class="charts">
+    <article class="card">
+      <div class="card-header">
+        <h2>Spending by category</h2>
+      </div>
+      @if (spending().length) {
+        <div class="doughnut-layout">
+          <div class="doughnut">
+            <canvas
+              [appChart]="doughnutConfig()"
+              aria-label="Spending by category chart"
+              role="img"
+            ></canvas>
+            <div class="doughnut-center">
+              <span class="text-muted">Spent</span>
+              <strong>{{ monthTotals().expenses | currency: 'USD' : 'symbol' : '1.0-0' }}</strong>
+            </div>
+          </div>
+          <ul class="legend">
+            @for (item of spending(); track item.category.id) {
+              <li>
+                <span class="dot" [style.background]="item.category.color"></span>
+                <span class="legend-name">{{ item.category.name }}</span>
+                <span class="legend-amount">{{ item.amount | currency }}</span>
+                <span class="legend-share text-muted"
+                  >{{ (item.amount / monthTotals().expenses) * 100 | number: '1.0-0' }}%</span
+                >
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <p class="empty-state">No expenses recorded for {{ monthLabel() }}.</p>
+      }
+    </article>
+
+    <article class="card">
+      <div class="card-header">
+        <h2>Income vs expenses</h2>
+      </div>
+      <div class="bar-chart">
+        <canvas
+          [appChart]="trendConfig()"
+          aria-label="Monthly income and expenses chart"
+          role="img"
+        ></canvas>
+      </div>
+    </article>
+  </div>
+
+  <div class="bottom">
+    <article class="card">
+      <div class="card-header">
+        <h2>Budgets</h2>
+        <a routerLink="/budgets" class="card-link">Manage</a>
+      </div>
+      @for (item of budgets(); track item.category.id) {
+        <div class="budget-row">
+          <div class="budget-info">
+            <span class="budget-name">
+              <span class="dot" [style.background]="item.category.color"></span>
+              {{ item.category.name }}
+              @if (item.status === 'over') {
+                <span class="badge danger"><app-icon name="alert" [size]="12" /> Over</span>
+              }
+            </span>
+            <span class="text-muted">
+              {{ item.spent | currency: 'USD' : 'symbol' : '1.0-0' }} /
+              {{ item.budget | currency: 'USD' : 'symbol' : '1.0-0' }}
+            </span>
+          </div>
+          <app-progress-bar [percent]="item.percent" [status]="item.status" />
+        </div>
+      } @empty {
+        <p class="empty-state">No budgets set yet.</p>
+      }
+    </article>
+
+    <article class="card">
+      <div class="card-header">
+        <h2>Recent transactions</h2>
+        <a routerLink="/transactions" class="card-link">View all</a>
+      </div>
+      <ul class="recent">
+        @for (t of recent(); track t.id) {
+          @let category = store.categoryMap().get(t.categoryId);
+          <li>
+            <span class="recent-icon" [style.background]="category?.color ?? '#94a3b8'">
+              <app-icon
+                [name]="t.type === 'income' ? 'trending-up' : 'trending-down'"
+                [size]="16"
+              />
+            </span>
+            <div class="recent-info">
+              <span class="recent-title">{{ t.description }}</span>
+              <span class="text-muted"
+                >{{ category?.name ?? 'Uncategorized' }} · {{ t.date | date: 'MMM d' }}</span
+              >
+            </div>
+            <span class="recent-amount" [class.text-income]="t.type === 'income'">
+              {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | currency }}
+            </span>
+          </li>
+        } @empty {
+          <li class="empty-state">Nothing here yet.</li>
+        }
+      </ul>
+    </article>
+  </div>
+</section>
