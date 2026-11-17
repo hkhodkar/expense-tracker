@@ -7,14 +7,13 @@ import { IconComponent } from './icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown.escape)': 'closed.emit()' },
   template: `
-    <div class="backdrop" (click)="closed.emit()">
+    <div class="backdrop" (mousedown)="onBackdropDown($event)" (click)="onBackdropClick($event)">
       <div
         class="modal"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="title()"
         [style.max-width.px]="width()"
-        (click)="$event.stopPropagation()"
       >
         <header class="modal-header">
           <h2>{{ title() }}</h2>
@@ -91,4 +90,17 @@ export class ModalComponent {
   readonly title = input.required<string>();
   readonly width = input(520);
   readonly closed = output<void>();
+
+  private pressedBackdrop = false;
+
+  protected onBackdropDown(event: MouseEvent): void {
+    this.pressedBackdrop = event.target === event.currentTarget;
+  }
+
+  // only close when the whole click happened on the backdrop, not a drag out of an input
+  protected onBackdropClick(event: MouseEvent): void {
+    if (this.pressedBackdrop && event.target === event.currentTarget) {
+      this.closed.emit();
+    }
+  }
 }
