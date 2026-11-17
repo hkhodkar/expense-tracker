@@ -30,7 +30,9 @@ export class ThemeService {
     if (saved === 'light' || saved === 'dark') {
       return saved;
     }
-    const prefersDark = this.document.defaultView?.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    const prefersDark = this.document.defaultView?.matchMedia?.(
+      '(prefers-color-scheme: dark)',
+    ).matches;
     return prefersDark ? 'dark' : 'light';
   }
 }
