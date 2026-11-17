@@ -1,0 +1,159 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Transactions</h1>
+      <p class="subtitle">Every income and expense in one place.</p>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="btn btn-primary" (click)="openCreate()">
+        <app-icon name="plus" /> Add transaction
+      </button>
+    </div>
+  </header>
+
+  <div class="card filters" [formGroup]="filterForm">
+    <div class="search">
+      <app-icon name="search" [size]="16" />
+      <input
+        class="input"
+        type="search"
+        placeholder="Search description or category"
+        aria-label="Search transactions"
+        formControlName="search"
+      />
+    </div>
+    <select class="select" aria-label="Type" formControlName="type">
+      <option value="all">All types</option>
+      <option value="income">Income</option>
+      <option value="expense">Expenses</option>
+    </select>
+    <select class="select" aria-label="Category" formControlName="categoryId">
+      <option value="all">All categories</option>
+      @for (category of filterCategories(); track category.id) {
+        <option [value]="category.id">{{ category.name }}</option>
+      }
+    </select>
+    <label class="date-field">
+      <span>From</span>
+      <input class="input" type="date" formControlName="from" />
+    </label>
+    <label class="date-field">
+      <span>To</span>
+      <input class="input" type="date" formControlName="to" />
+    </label>
+    @if (hasFilters()) {
+      <button type="button" class="btn btn-ghost" (click)="clearFilters()">Clear</button>
+    }
+  </div>
+
+  <div class="card table-card">
+    <div class="table-summary">
+      <span>
+        <strong>{{ filtered().length }}</strong> transactions
+      </span>
+      <span class="text-income">+{{ filteredTotals().income | currency }}</span>
+      <span class="text-expense">-{{ filteredTotals().expenses | currency }}</span>
+      <span class="net">Net {{ filteredTotals().balance | currency }}</span>
+    </div>
+
+    @if (pageItems().length) {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th class="num">Amount</th>
+              <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of pageItems(); track t.id) {
+              @let category = store.categoryMap().get(t.categoryId);
+              <tr>
+                <td class="text-muted">{{ t.date | date: 'MMM d, y' }}</td>
+                <td class="description">{{ t.description }}</td>
+                <td>
+                  <span class="category-chip">
+                    <span class="dot" [style.background]="category?.color ?? '#94a3b8'"></span>
+                    {{ category?.name ?? 'Uncategorized' }}
+                  </span>
+                </td>
+                <td class="num amount" [class.text-income]="t.type === 'income'">
+                  {{ t.type === 'income' ? '+' : '-' }}{{ t.amount | currency }}
+                </td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label="Edit transaction"
+                    (click)="openEdit(t)"
+                  >
+                    <app-icon name="pencil" [size]="16" />
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    aria-label="Delete transaction"
+                    (click)="deleting.set(t)"
+                  >
+                    <app-icon name="trash" [size]="16" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <span class="text-muted">{{ rangeLabel() }}</span>
+        <div class="pager">
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label="Previous page"
+            [disabled]="page() <= 1"
+            (click)="goToPage(page() - 1)"
+          >
+            <app-icon name="chevron-left" />
+          </button>
+          <span>Page {{ page() }} of {{ pageCount() }}</span>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label="Next page"
+            [disabled]="page() >= pageCount()"
+            (click)="goToPage(page() + 1)"
+          >
+            <app-icon name="chevron-right" />
+          </button>
+        </div>
+      </footer>
+    } @else {
+      <div class="empty-state">
+        @if (hasFilters()) {
+          <p>No transactions match these filters.</p>
+          <button type="button" class="btn" (click)="clearFilters()">Clear filters</button>
+        } @else {
+          <p>No transactions yet. Add your first one to get started.</p>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+@if (formOpen()) {
+  <app-transaction-form [transaction]="editing()" (saved)="save($event)" (closed)="closeForm()" />
+}
+
+@if (deleting(); as transaction) {
+  <app-confirm-dialog
+    title="Delete transaction?"
+    [message]="'“' + transaction.description + '” will be removed permanently.'"
+    confirmLabel="Delete"
+    (confirmed)="confirmDelete()"
+    (cancelled)="deleting.set(null)"
+  />
+}

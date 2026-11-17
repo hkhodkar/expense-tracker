@@ -18,6 +18,15 @@
       <button
         type="button"
         class="nav-link"
+        aria-label="Reset demo data"
+        (click)="confirmReset.set(true)"
+      >
+        <app-icon name="refresh" />
+        <span class="footer-label">Reset demo data</span>
+      </button>
+      <button
+        type="button"
+        class="nav-link"
         (click)="theme.toggle()"
         [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
       >
@@ -31,3 +40,15 @@
     <router-outlet />
   </main>
 </div>
+
+<app-toast-container />
+
+@if (confirmReset()) {
+  <app-confirm-dialog
+    title="Reset demo data?"
+    message="All your categories and transactions will be replaced with the sample data."
+    confirmLabel="Reset data"
+    (confirmed)="resetDemoData()"
+    (cancelled)="confirmReset.set(false)"
+  />
+}

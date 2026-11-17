@@ -1,0 +1,70 @@
+<app-modal [title]="isEdit() ? 'Edit transaction' : 'New transaction'" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="modal-body form-grid">
+      <div class="field full">
+        <span class="visually-hidden" id="type-label">Type</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="type-label">
+          <label><input type="radio" formControlName="type" value="expense" /> Expense</label>
+          <label><input type="radio" formControlName="type" value="income" /> Income</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="amount">Amount (USD)</label>
+        <input
+          id="amount"
+          class="input"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+          formControlName="amount"
+        />
+        @if (showError('amount')) {
+          <span class="field-error">Enter an amount greater than zero.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="date">Date</label>
+        <input id="date" class="input" type="date" formControlName="date" />
+        @if (showError('date')) {
+          <span class="field-error">Pick a date.</span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="category">Category</label>
+        <select id="category" class="select" formControlName="categoryId">
+          @for (category of categoryOptions(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+        @if (showError('categoryId')) {
+          <span class="field-error">Choose a category.</span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="description">Description</label>
+        <input
+          id="description"
+          class="input"
+          type="text"
+          placeholder="e.g. Weekly groceries"
+          formControlName="description"
+        />
+        @if (showError('description')) {
+          <span class="field-error">Add a short description (max 80 characters).</span>
+        }
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="btn btn-primary">
+        {{ isEdit() ? 'Save changes' : 'Add transaction' }}
+      </button>
+    </footer>
+  </form>
+</app-modal>
